@@ -1,6 +1,4 @@
-# BÀI LÀM LÝ THUYẾT - ĐỀ SỐ 02
-Học phần: Phát triển phần mềm hướng đối tượng (IN4211)
-
+# LÝ THUYẾT - ĐỀ SỐ 02
 ## Câu 1a
 Bốn trụ cột của lập trình hướng đối tượng:
 1. Đóng gói (Encapsulation): Che giấu dữ liệu bên trong đối tượng, không cho bên ngoài can thiệp trực tiếp mà phải thông qua các phương thức công khai hợp lệ để bảo vệ tính toàn vẹn của dữ liệu.
@@ -14,45 +12,45 @@ Bốn trụ cột của lập trình hướng đối tượng:
 
 ## Câu 1b
 Hai vấn đề của lớp Member chưa đóng gói:
-1. Các thuộc tính `Id` và `Email` dùng `public { get; set; }` nên các lớp bên ngoài có thể tự do thay đổi giá trị bất kỳ lúc nào, kể cả gán dữ liệu rỗng hoặc sai định dạng email.
-2. Có constructor mặc định rỗng `public Member() { }` cho phép tạo đối tượng mà không cần truyền giá trị ban đầu, không qua bước kiểm tra email hợp lệ.
-
+1.Các property Id và Email đang để public set; nên chỗ khác có thể gán thẳng lung tung, ví dụ m.Email = "abc" vẫn chạy được mà không bị chặn hay kiểm tra gì.
+2.Có constructor rỗng public Member() {} và không có chỗ kiểm tra dữ liệu đầu vào (như email rỗng hoặc thiếu @), nên dễ tạo ra đối tượng Member sai dữ liệu.
 ## Câu 2a
 Sơ đồ trạng thái của Registration:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Pending : Create
-    Pending --> Confirmed : Confirm()
-    Pending --> Cancelled : Cancel()
-    Confirmed --> Cancelled : Cancel()
-    Cancelled --> [*]
+    [*] --> Pending : Tạo phiếu (Create)
+    Pending --> Confirmed : Xác nhận (Confirm)
+    Pending --> Cancelled : Huỷ phiếu (Cancel)
+    Confirmed --> Cancelled : Huỷ phiếu (Cancel)
+    note right of Cancelled: Đã huỷ, không đổi trạng thái nữa
 ```
 
 ## Câu 3a
-Ba nguyên lý SOLID mà lớp EventService vi phạm:
-1. Single Responsibility Principle (SRP): Dòng 8-10, phương thức vừa kết nối cơ sở dữ liệu để lưu sự kiện, vừa ghi log ra file txt, vừa gửi thông báo. Lớp có quá nhiều trách nhiệm khác nhau.
-2. Open/Closed Principle (OCP): Dòng 11-14, sử dụng `if (channel == "email") ... else if (channel == "sms")`. Khi cần thêm kênh thông báo mới phải sửa trực tiếp mã nguồn của lớp.
-3. Dependency Inversion Principle (DIP): Dòng 8, 12, 14, trực tiếp khởi tạo các lớp cụ thể (`SqlConnection`, `EmailSender`, `SmsSender`) thay vì phụ thuộc vào interface (abstraction).
-
+1.Single Responsibility Principle (SRP) - Nguyên lý đơn trách nhiệm (dòng 3–15):
+Hàm CreateEvent làm quá nhiều việc trong một lớp: vừa kiểm tra dữ liệu đầu vào (dòng 6–7), vừa kết nối và lưu vào database (dòng 8–9), vừa ghi log ra file (dòng 10), lại vừa gửi thông báo (dòng 11–14). Sau này sửa cách ghi log hay đổi cách gửi thông báo đều phải mở file này ra sửa.
+2Open/Closed Principle (OCP) - Nguyên lý đóng/mở (dòng 11–14):
+Đang dùng chuỗi if (channel == "email") ... else if (channel == "sms") để chọn kênh gửi thông báo. Nếu sau này hệ thống thêm kênh mới (như Zalo hay Push Notification) thì phải sửa trực tiếp code trong hàm CreateEvent thay vì mở rộng thêm lớp mới.
+3.Dependency Inversion Principle (DIP) - Nguyên lý đảo ngược phụ thuộc (dòng 8, 12, 14):
+EventService tự khởi tạo trực tiếp (new) các lớp cụ thể bên trong như new SqlConnection(...), new EmailSender(), new SmsSender() chứ không thông qua interface (như repository hay notification service). Làm vậy khiến lớp bị phụ thuộc cứng vào database và các lớp gửi tin cụ thể, rất khó test hoặc thay đổi.
 ## Câu 4b
 Phân biệt git merge và git rebase:
-- `git merge`: Kết hợp các nhánh bằng cách tạo ra một commit gộp (merge commit). Lịch sử được bảo toàn nguyên vẹn nhưng cây lịch sử phân nhánh nhiều.
-- `git rebase`: Chuyển gốc các commit của nhánh hiện tại đặt lên đỉnh của nhánh đích. Lịch sử commit thẳng hàng và gọn gàng hơn, nhưng commit hash sẽ bị thay đổi (viết lại lịch sử).
-- Khi nào không nên dùng rebase: Không dùng rebase trên các nhánh công khai (như `main` hay nhánh làm chung) vì sẽ làm sai lệch lịch sử commit của các thành viên khác khi đồng bộ code.
+   git merge: Gộp nhánh bằng cách tạo thêm một merge commit (hoặc fast-forward), giữ nguyên lịch sử và nhánh rẽ thực tế. Dễ làm, an toàn, không làm đổi lịch sử cũ.
+   git rebase: Dời các commit của nhánh hiện tại lên nối tiếp phần mới nhất của nhánh đích (thực chất là tạo lại commit mới), giúp lịch sử commit thẳng hàng, gọn gàng hơn nhưng làm thay đổi hash/lịch sử commit.
+
+Khi nào không nên dùng rebase:
+   Trên các nhánh chung / nhánh công khai mà nhiều người đang làm chung (như main, develop), vì viết lại lịch sử dễ làm loạn code của người khác và phải force push.
+   Với các commit đã đẩy lên remote và người khác đã pull về làm tiếp.
+   Khi gặp nhiều conflict phức tạp mà mình chưa nắm chắc, dùng merge sẽ an toàn và dễ theo dõi hơn.
 
 ## Câu 5a
 Sơ đồ 4 lớp Clean Architecture và chiều phụ thuộc:
 
-```mermaid
-graph TD
-    API["EduHub.API<br/>(EventsController, Program.cs)"] --> Application["EduHub.Application<br/>(EventService, IEventRepository)"]
-    API --> Infrastructure["EduHub.Infrastructure<br/>(InMemoryEventRepository, Notification Services)"]
-    Infrastructure --> Application
-    Infrastructure --> Domain["EduHub.Domain<br/>(Event, Member, Registration)"]
-    Application --> Domain
-```
-
+EduHub.API → EduHub.Application
+EduHub.API → EduHub.Infrastructure
+EduHub.Infrastructure → EduHub.Application
+EduHub.Infrastructure → EduHub.Domain
+EduHub.Application → EduHub.Domain
 Phân bố cụ thể:
 - EduHub.Domain: `Event`, `Member`, `Registration`, `RegistrationStatus`.
 - EduHub.Application: `IEventRepository`, `EventService`, `INotificationService`, `NotificationServiceFactory`.
@@ -60,11 +58,9 @@ Phân bố cụ thể:
 - EduHub.API: `EventsController`, `Program.cs`.
 
 ## Câu 5b
-Vì theo Dependency Rule trong Clean Architecture, chiều phụ thuộc chỉ được phép hướng từ ngoài vào trong:
-- `EduHub.Domain` là tầng lõi trong cùng chứa các nghiệp vụ cốt lõi, không được phụ thuộc vào bất kỳ framework hay công nghệ bên ngoài nào.
-- `EduHub.Infrastructure` là tầng ngoại vi chứa các công nghệ triển khai cụ thể (database, I/O, service bên ngoài).
-Nếu Domain tham chiếu tới Infrastructure sẽ làm nghiệp vụ bị phụ thuộc vào công nghệ cụ thể, vi phạm nguyên lý DIP và khó thay đổi hạ tầng hay viết unit test.
+Theo kiến trúc Clean Architecture thì các mũi tên phụ thuộc luôn chỉ hướng vào trong, lớp ở trong cùng không được phụ thuộc vào lớp ở bên ngoài. Domain là lớp ở trung tâm, chứa những thứ cốt lõi nhất của dự án. Còn Infrastructure là lớp bên ngoài, chỉ làm những việc cụ thể như lưu dữ liệu hay gửi mail thôi.
 
+Nếu Domain tham chiếu đến Infrastructure thì khi mình thay đổi cái gì ở lớp ngoài như đổi cách lưu dữ liệu thì lớp trong cũng bị ảnh hưởng theo, rất dễ lỗi và khó sửa. Nên Domain phải để độc lập, chỉ các lớp ngoài gọi vào Domain thôi, Domain không được gọi ra lớp nào bên ngoài hết.
 ## Câu 5d
 - Nguyên nhân: Với vòng đời `AddScoped`, mỗi HTTP Request sẽ tạo ra một instance mới của `InMemoryEventRepository` và hủy đi khi request kết thúc. Do đó khi gọi POST, dữ liệu được thêm vào list của instance đó rồi biến mất. Khi gọi GET ở request tiếp theo, một instance mới được tạo ra với danh sách rỗng nên trả về rỗng.
 - Cách khắc phục: Em đã đăng ký dịch vụ dạng `AddSingleton` trong `Program.cs`:
