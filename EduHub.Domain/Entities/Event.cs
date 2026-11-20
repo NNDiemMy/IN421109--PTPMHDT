@@ -22,13 +22,13 @@ namespace EduHub.Domain.Entities
         public static Event Create(Guid clubId, string title, DateTime date, int capacity)
         {
             if (clubId == Guid.Empty)
-                throw new ArgumentException("Mã câu lạc bộ không hợp lệ", nameof(clubId));
+                throw new ArgumentException("Mã câu lạc bộ không hợp lệ");
 
             if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("Tiêu đề không được để trống", nameof(title));
+                throw new ArgumentException("Tiêu đề không được để trống");
 
             if (capacity <= 0)
-                throw new ArgumentException("Sức chứa phải lớn hơn 0", nameof(capacity));
+                throw new ArgumentException("Sức chứa phải lớn hơn 0");
 
             return new Event(Guid.NewGuid(), clubId, title.Trim(), date, capacity);
         }

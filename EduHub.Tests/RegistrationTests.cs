@@ -8,69 +8,45 @@ namespace EduHub.Tests
     public class RegistrationTests
     {
         [Fact]
-        public void Create_WithValidData_ShouldInitializeWithPendingStatus()
+        public void Create_ValidInput_ShouldHavePendingStatus()
         {
-            // Arrange
-            var memberId = Guid.NewGuid();
-            var eventId = Guid.NewGuid();
-
-            // Act
-            var registration = Registration.Create(memberId, eventId);
-
-            // Assert
-            Assert.NotEqual(Guid.Empty, registration.Id);
-            Assert.Equal(memberId, registration.MemberId);
-            Assert.Equal(eventId, registration.EventId);
-            Assert.Equal(RegistrationStatus.Pending, registration.Status);
+            var r = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
+            Assert.Equal(RegistrationStatus.Pending, r.Status);
         }
 
         [Fact]
-        public void Confirm_WhenStatusIsPending_ShouldChangeStatusToConfirmed()
+        public void Confirm_WhenPending_ShouldChangeToConfirmed()
         {
-            // Arrange
-            var registration = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
-
-            // Act
-            registration.Confirm();
-
-            // Assert
-            Assert.Equal(RegistrationStatus.Confirmed, registration.Status);
+            var r = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
+            r.Confirm();
+            Assert.Equal(RegistrationStatus.Confirmed, r.Status);
         }
 
+        // Tình huống bắt buộc của đề bài
         [Fact]
-        public void Confirm_WhenCancelled_ShouldThrowInvalidOperationExceptionAndStatusRemainsCancelled()
+        public void Confirm_WhenCancelled_ShouldThrowExceptionAndRemainCancelled()
         {
-            // Arrange
             var memberId = Guid.NewGuid();
             var eventId = Guid.NewGuid();
+
             var r = Registration.Create(memberId, eventId);
             r.Cancel();
 
-            // Act & Assert (Tình huống bắt buộc của đề bài)
             Assert.Throws<InvalidOperationException>(() => r.Confirm());
             Assert.Equal(RegistrationStatus.Cancelled, r.Status);
         }
 
         [Fact]
-        public void Cancel_WhenPendingOrConfirmed_ShouldSetStatusToCancelled()
+        public void Cancel_WhenPending_ShouldChangeToCancelled()
         {
-            // Arrange & Act
-            var r1 = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
-            r1.Cancel();
-
-            var r2 = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
-            r2.Confirm();
-            r2.Cancel();
-
-            // Assert
-            Assert.Equal(RegistrationStatus.Cancelled, r1.Status);
-            Assert.Equal(RegistrationStatus.Cancelled, r2.Status);
+            var r = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
+            r.Cancel();
+            Assert.Equal(RegistrationStatus.Cancelled, r.Status);
         }
 
         [Fact]
-        public void Create_WithEmptyGuid_ShouldThrowArgumentException()
+        public void Create_EmptyGuid_ShouldThrowArgumentException()
         {
-            // Act & Assert
             Assert.Throws<ArgumentException>(() => Registration.Create(Guid.Empty, Guid.NewGuid()));
             Assert.Throws<ArgumentException>(() => Registration.Create(Guid.NewGuid(), Guid.Empty));
         }

@@ -8,38 +8,29 @@ namespace EduHub.Application.Services
     public class EventService
     {
         private readonly IEventRepository _eventRepository;
-        private readonly NotificationServiceFactory _notificationServiceFactory;
+        private readonly NotificationServiceFactory _notificationFactory;
 
-        public EventService(IEventRepository eventRepository, NotificationServiceFactory notificationServiceFactory)
+        public EventService(IEventRepository eventRepository, NotificationServiceFactory notificationFactory)
         {
-            _eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
-            _notificationServiceFactory = notificationServiceFactory ?? throw new ArgumentNullException(nameof(notificationServiceFactory));
+            _eventRepository = eventRepository;
+            _notificationFactory = notificationFactory;
         }
 
         public Event CreateEvent(Guid clubId, string title, DateTime date, int capacity, string channel)
         {
-            var @event = Event.Create(clubId, title, date, capacity);
-            _eventRepository.Add(@event);
+            var evt = Event.Create(clubId, title, date, capacity);
+            _eventRepository.Add(evt);
 
-            var notificationService = _notificationServiceFactory.Create(channel);
-            notificationService.Send($"Sự kiện mới: {@event.Title}");
+            var notifier = _notificationFactory.Create(channel);
+            notifier.Send($"Sự kiện mới: {evt.Title}");
 
-            return @event;
+            return evt;
         }
 
-        public Event? GetById(Guid id)
-        {
-            return _eventRepository.GetById(id);
-        }
+        public Event? GetById(Guid id) => _eventRepository.GetById(id);
 
-        public IEnumerable<Event> GetByClubId(Guid clubId)
-        {
-            return _eventRepository.GetByClubId(clubId);
-        }
+        public IEnumerable<Event> GetByClubId(Guid clubId) => _eventRepository.GetByClubId(clubId);
 
-        public bool DeleteEvent(Guid id)
-        {
-            return _eventRepository.Delete(id);
-        }
+        public bool DeleteEvent(Guid id) => _eventRepository.Delete(id);
     }
 }
